@@ -9,6 +9,7 @@ import { selectEvents, editEvent } from '../../store/slices/events/slice';
 import { areSlotsConflicting, isIntervalValid, _showMessage } from '../../utils/helper';
 import { Header, InputTextField, MultiLineInputTextField, DateTimeButton, Button, DropDown } from '../../components';
 import { eventTypes } from '../../utils/dropdowdata';
+import { keyBoardOpen } from '../../hooks';
 import colors from '../../utils/colors';
 import styles from './styles';
 import moment from 'moment';
@@ -19,6 +20,7 @@ type EventDetailsScreenTypes = NativeStackScreenProps<{
     }
 }, "EDITEVENT">
 const EditEvent = ({ navigation, route }: NativeStackScreenProps<any>) => {
+    const { keyboardStatus } = keyBoardOpen() 
     const { event } = route?.params ?? {}
     const isCalender = route?.params?.isCalender ?? false
     const dispatch = useDispatch()
@@ -155,9 +157,9 @@ const EditEvent = ({ navigation, route }: NativeStackScreenProps<any>) => {
                     onPress={_attachDocument}
                 />
             </View>
-            <Button children={'Edit Event'} containerStyle={styles.addEventButton}
+            { !keyboardStatus&&  <Button children={'Edit Event'} containerStyle={styles.addEventButton}
                 onPress={_createEvent}
-            />
+            />}
         </ScreenWrapper>
     );
 };

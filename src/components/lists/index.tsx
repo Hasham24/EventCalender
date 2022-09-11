@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { width } from 'react-native-dimension';
-import { useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux';
+import notifee from '@notifee/react-native';
 import { deleteEvent } from '../../store/slices/events/slice';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import styles from './styles';
@@ -16,17 +17,17 @@ interface EventListProps {
 export const EventList = ({ item, onPressEdit, onPresDelete = () => { } }: EventListProps) => {
   const dispatch = useDispatch()
   const { name, date, startTime, endTime, description, eventType, attachment, id } = item
+  const _deleteEvent = async()=>{
+    dispatch(deleteEvent({ id: id }))
+    onPresDelete()
+    await notifee.cancelNotification(id);
+  }
   return (
     <View style={styles.listContainer}>
       <View style={styles.eventTitleContainer}>
         <Text>{name}</Text>
         <View style={styles.editDeleteContainer}>
-          <TouchableOpacity style={styles.deleteButton}
-            onPress={() => {
-              dispatch(deleteEvent({ id: id }))
-              onPresDelete()
-            }}
-          >
+          <TouchableOpacity style={styles.deleteButton} onPress={_deleteEvent} >
             <AntDesign name='delete' size={width(6)} color={colors.red} />
           </TouchableOpacity>
           <TouchableOpacity onPress={onPressEdit}>

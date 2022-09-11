@@ -7,12 +7,14 @@ import DocumentPicker from 'react-native-document-picker';
 import notifee, { TimestampTrigger, TriggerType } from '@notifee/react-native';
 import { addEvent, selectEvents } from '../../store/slices/events/slice';
 import { areSlotsConflicting, isIntervalValid, _showMessage } from '../../utils/helper';
+import { keyBoardOpen } from '../../hooks';
 import { Header, InputTextField, MultiLineInputTextField, DateTimeButton, Button, DropDown } from '../../components';
 import { eventTypes } from '../../utils/dropdowdata';
 import colors from '../../utils/colors';
 import styles from './styles';
 import moment from 'moment';
 const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
+    const { keyboardStatus } = keyBoardOpen()    
     const dispatch = useDispatch()
     const events = useSelector(selectEvents)
     const [name, setName] = useState('')
@@ -36,13 +38,18 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
         };
         // Create a trigger notification
         try {
+            await notifee.requestPermission();
+            const channelId = await notifee.createChannel({
+                id: 'default',
+                name: 'Default Channel',
+              });
             await notifee.createTriggerNotification(
                 {
                     id: String(events.length),
                     title: 'You have an event',
                     body: `Today at ${moment(startTime).format('hh:mma')}`,
                     android: {
-                        channelId: 'your-channel-id',
+                        channelId: channelId,
                     },
                 },
                 trigger,
@@ -78,12 +85,12 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
         if (!isIntervalValid(startTime, endTime)) {
             return _showMessage('End Time cannot be before Start Time')
         }
-        if (moment().format('MM/DD/YY') === moment(date).format('MM/DD/YY')) {
-            let currentTime = moment()
-            let startEventTime = moment(startTime).subtract(30, 'minute')
-            if (!isIntervalValid(currentTime, startEventTime))
-                return _showMessage('Your event must be in the future atleast 30 minutes before current time')
-        }
+        // if (moment().format('MM/DD/YY') === moment(date).format('MM/DD/YY')) {
+        //     let currentTime = moment()
+        //     let startEventTime = moment(startTime).subtract(30, 'minute')
+        //     if (!isIntervalValid(currentTime, startEventTime))
+        //         return _showMessage('Your event must be in the future atleast 30 minutes before current time')
+        // }
         let timeSlot = {
             startTime: startTime,
             endTime: endTime
@@ -113,7 +120,7 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
             date,
             startTime,
             endTime,
-            attachment: attachment.hasOwnProperty(name) ? attachment : null
+            attachment: attachment.hasOwnProperty('name') ? attachment : null
         }
         dispatch(addEvent({ event }))
         onCreateTriggerNotification()
@@ -133,6 +140,7 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
 
         }
     }
+
     return (
         <ScreenWrapper statusBarColor={colors.white}>
             <Header title='Create Event' onPress={navigation.goBack} />
@@ -157,9 +165,9 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
                     textStyle={documentName == '' ? styles.unSelectattachmentText : styles.attachmentText}
                     onPress={_attachDocument}
                 />
-                <Button children={'Add Event'} containerStyle={styles.addEventButton}
+              { !keyboardStatus&&  <Button children={'Add Event'} containerStyle={styles.addEventButton}
                     onPress={_createEvent}
-                />
+                />}
             </View>
         </ScreenWrapper>
     );
