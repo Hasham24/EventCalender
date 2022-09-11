@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { width } from 'react-native-dimension';
 import { useDispatch } from 'react-redux'
@@ -9,23 +9,23 @@ import moment from 'moment';
 import colors from '../../utils/colors';
 // Component Props
 interface EventListProps {
-  item: Object,
+  item: Record<string, any>,
   onPressEdit?: () => void;
   onPresDelete?: () => void;
 }
-export const EventList = ({ item,onPressEdit,onPresDelete=()=>{} }: EventListProps) => {
+export const EventList = ({ item, onPressEdit, onPresDelete = () => { } }: EventListProps) => {
   const dispatch = useDispatch()
-  const { name, date, startTime, endTime, description, eventType, attachment,id } = item
+  const { name, date, startTime, endTime, description, eventType, attachment, id } = item
   return (
     <View style={styles.listContainer}>
       <View style={styles.eventTitleContainer}>
         <Text>{name}</Text>
         <View style={styles.editDeleteContainer}>
           <TouchableOpacity style={styles.deleteButton}
-          onPress={()=>{
-            dispatch(deleteEvent({id:id}))
-            onPresDelete()
-        }}
+            onPress={() => {
+              dispatch(deleteEvent({ id: id }))
+              onPresDelete()
+            }}
           >
             <AntDesign name='delete' size={width(6)} color={colors.red} />
           </TouchableOpacity>
