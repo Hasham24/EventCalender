@@ -1,7 +1,5 @@
 import React, { forwardRef } from 'react';
 import { View, TextInput, Keyboard } from 'react-native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import { width } from 'react-native-dimension';
 import styles from './styles';
 import colors from '../../utils/colors';
 

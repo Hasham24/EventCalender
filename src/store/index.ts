@@ -3,20 +3,17 @@ import { combineReducers } from 'redux';
 import { eventSliceReducer } from './slices/events/slice';
 import { persistReducer } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const createDebugger = require('redux-flipper').default;
 const reducers = combineReducers({
-
+  events:eventSliceReducer
 });
-// const persistConfig = {
-//   key: 'root',
-//   storage: AsyncStorage,
-//   whitelist: ['person']
-// };
-// const persistedReducer = persistReducer(persistConfig, reducers);
+const persistConfig = {
+  key: 'root',
+  storage: AsyncStorage,
+  whitelist: ['events']
+};
+const persistedReducer = persistReducer(persistConfig, reducers);
 export const store = configureStore({
-  reducer: {
-    events:eventSliceReducer
-  },
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     serializableCheck: false,
   })
