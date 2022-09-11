@@ -85,12 +85,12 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
         if (!isIntervalValid(startTime, endTime)) {
             return _showMessage('End Time cannot be before Start Time')
         }
-        // if (moment().format('MM/DD/YY') === moment(date).format('MM/DD/YY')) {
-        //     let currentTime = moment()
-        //     let startEventTime = moment(startTime).subtract(30, 'minute')
-        //     if (!isIntervalValid(currentTime, startEventTime))
-        //         return _showMessage('Your event must be in the future atleast 30 minutes before current time')
-        // }
+        if (moment().format('MM/DD/YY') === moment(date).format('MM/DD/YY')) {
+            let currentTime = moment()
+            let startEventTime = moment(startTime).subtract(30, 'minute')
+            if (!isIntervalValid(currentTime, startEventTime))
+                return _showMessage('Your event must be in the future atleast 30 minutes before current time')
+        }
         let timeSlot = {
             startTime: startTime,
             endTime: endTime
