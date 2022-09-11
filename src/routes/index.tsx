@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CreateEvent, EditEvent } from '../screens';
-import BottomTab from './bottom_tab'
+import RNBootSplash from "react-native-bootsplash";
+import BottomTab from './bottom_tab';
+
 const Stack = createNativeStackNavigator();
 const Routes = () => {
+  RNBootSplash.hide({ fade: true });
   return (
     <NavigationContainer >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
