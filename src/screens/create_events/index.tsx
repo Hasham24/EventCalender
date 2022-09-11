@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenWrapper } from 'react-native-screen-wrapper';
-import { useSelector, useDispatch } from 'react-redux'
-import DocumentPicker from 'react-native-document-picker'
+import { useSelector, useDispatch } from 'react-redux';
+import DocumentPicker from 'react-native-document-picker';
+import notifee, { TimestampTrigger, TriggerType } from '@notifee/react-native';
 import { addEvent, selectEvents } from '../../store/slices/events/slice';
 import { areSlotsConflicting, isIntervalValid, _showMessage } from '../../utils/helper';
 import { Header, InputTextField, MultiLineInputTextField, DateTimeButton, Button, DropDown } from '../../components';
+import { eventTypes } from '../../utils/dropdowdata';
 import colors from '../../utils/colors';
 import styles from './styles';
-import { eventTypes } from '../../utils/dropdowdata';
 import moment from 'moment';
-
 const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
     const dispatch = useDispatch()
     const events = useSelector(selectEvents)
@@ -23,6 +23,36 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
     const [endTime, setEndTime] = useState('')
     const [attachment, setAttachment] = useState({})
     const [documentName, setDocumentName] = useState('')
+
+    const onCreateTriggerNotification = async () => {
+        const trigerdate = new Date(date);
+        let hour = Number(moment(startTime).format('H'))
+        let minutes = Number(moment(startTime).subtract(10, 'minutes').format('mm'))
+        trigerdate.setHours(hour)
+        trigerdate.setMinutes(minutes)
+        const trigger: TimestampTrigger = {
+            type: TriggerType.TIMESTAMP,
+            timestamp: trigerdate.getTime(), // fire at 11:10am (10 minutes before meeting)
+        };
+        // Create a trigger notification
+        try {
+            await notifee.createTriggerNotification(
+                {
+                    id: String(events.length),
+                    title: 'You have an event',
+                    body: `Today at ${moment(startTime).format('hh:mma')}`,
+                    android: {
+                        channelId: 'your-channel-id',
+                    },
+                },
+                trigger,
+            );
+        } catch (error) {
+            console.log(error);
+
+        }
+    }
+
     const _createEvent = () => {
         if (name == '') {
             return _showMessage('Please enter event name')
@@ -44,6 +74,15 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
         }
         if (!isIntervalValid(startTime, endTime)) {
             return _showMessage('End Time cannot be before Start Time')
+        }
+        if (!isIntervalValid(startTime, endTime)) {
+            return _showMessage('End Time cannot be before Start Time')
+        }
+        if (moment().format('MM/DD/YY') === moment(date).format('MM/DD/YY')) {
+            let currentTime = moment()
+            let startEventTime = moment(startTime).subtract(30, 'minute')
+            if (!isIntervalValid(currentTime, startEventTime))
+                return _showMessage('Your event must be in the future atleast 30 minutes before current time')
         }
         let timeSlot = {
             startTime: startTime,
@@ -67,7 +106,7 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
             return _showMessage('Time slot conflicting')
         }
         let event = {
-            id: events.length,
+            id: String(events.length),
             eventType,
             name,
             description,
@@ -77,6 +116,7 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
             attachment: attachment.hasOwnProperty(name) ? attachment : null
         }
         dispatch(addEvent({ event }))
+        onCreateTriggerNotification()
         navigation.goBack()
     }
     const _attachDocument = async () => {
@@ -118,8 +158,8 @@ const CreateEvent = ({ navigation }: NativeStackScreenProps<any>) => {
                     onPress={_attachDocument}
                 />
                 <Button children={'Add Event'} containerStyle={styles.addEventButton}
-                onPress={_createEvent}
-            />
+                    onPress={_createEvent}
+                />
             </View>
         </ScreenWrapper>
     );

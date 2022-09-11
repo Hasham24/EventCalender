@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenWrapper } from 'react-native-screen-wrapper';
-import { useSelector, useDispatch } from 'react-redux'
-import DocumentPicker from 'react-native-document-picker'
+import notifee, { TimestampTrigger, TriggerType } from '@notifee/react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import DocumentPicker from 'react-native-document-picker';
 import { selectEvents, editEvent } from '../../store/slices/events/slice';
 import { areSlotsConflicting, isIntervalValid, _showMessage } from '../../utils/helper';
 import { Header, InputTextField, MultiLineInputTextField, DateTimeButton, Button, DropDown } from '../../components';
@@ -12,14 +13,14 @@ import colors from '../../utils/colors';
 import styles from './styles';
 import moment from 'moment';
 type EventDetailsScreenTypes = NativeStackScreenProps<{
-    "EVENTDETAILS": {
-        event: object,
-        isCalender:boolean
+    "EDITEVENT": {
+        event: object|any,
+        isCalender: boolean
     }
-}, "EVENTDETAILS">
+}, "EDITEVENT">
 const EditEvent = ({ navigation, route }: NativeStackScreenProps<any>) => {
     const { event } = route?.params ?? {}
-    const  isCalender  = route?.params?.isCalender ?? false
+    const isCalender = route?.params?.isCalender ?? false
     const dispatch = useDispatch()
     const events = useSelector(selectEvents)
     const [name, setName] = useState(event?.name)
@@ -30,6 +31,34 @@ const EditEvent = ({ navigation, route }: NativeStackScreenProps<any>) => {
     const [endTime, setEndTime] = useState(event?.endTime)
     const [attachment, setAttachment] = useState(event?.attachment ?? {})
     const [documentName, setDocumentName] = useState(event?.attachment?.name ?? '')
+    const onCreateTriggerNotification = async () => {
+        const trigerdate = new Date(date);
+        let hour = Number(moment(startTime).format('H'))
+        let minutes = Number(moment(startTime).subtract(10, 'minutes').format('mm'))
+        trigerdate.setHours(hour)
+        trigerdate.setMinutes(minutes)
+        const trigger: TimestampTrigger = {
+            type: TriggerType.TIMESTAMP,
+            timestamp: trigerdate.getTime(), // fire at 11:10am (10 minutes before meeting)
+        };
+        // Create a trigger notification
+        try {
+            await notifee.createTriggerNotification(
+                {
+                    id: String(events.length),
+                    title: 'You have an event',
+                    body: `Today at ${moment(startTime).format('hh:mma')}`,
+                    android: {
+                        channelId: 'your-channel-id',
+                    },
+                },
+                trigger,
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     const _createEvent = () => {
         if (name == '') {
             return _showMessage('Please enter event name')
@@ -82,9 +111,10 @@ const EditEvent = ({ navigation, route }: NativeStackScreenProps<any>) => {
             startTime,
             endTime,
             attachment: attachment.hasOwnProperty(name) ? attachment : null
-        }        
+        }
         dispatch(editEvent({ event: editEventData, id: event?.id }))
-        isCalender?navigation.navigate('CalenderView',{isCalender}): navigation.goBack()
+        onCreateTriggerNotification()
+        isCalender ? navigation.navigate('CalenderView', { isCalender }) : navigation.goBack()
     }
     const _attachDocument = async () => {
         try {

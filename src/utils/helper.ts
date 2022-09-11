@@ -9,7 +9,7 @@ export const  _showMessage = (description:string) => {
         position: 'top'
     });
 }
-export function isIntervalValid(startTime:string, endTime:string, format = "hh:mm A") {
+export function isIntervalValid(startTime:string|any, endTime:string|any, format = "hh:mm A") {
     function to24FormatMinutes(time:string) {
         let hours = moment(time, format).get('hours');
         let minutes = moment(time, format).get('minutes');

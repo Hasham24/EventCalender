@@ -34,7 +34,7 @@ const eventSlice = createSlice({
             state.events = newEvent
             state.copyEvents = newCopyEvent
         },
-        deleteEvent: (state, action: PayloadAction<{  id: any }>) => {
+        deleteEvent: (state, action: PayloadAction<{  id: string }>) => {
             const { id } = action.payload
             const newEvent = [...state.events]
             const newCopyEvent = [...state.copyEvents]
